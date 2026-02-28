@@ -1,0 +1,38 @@
+
+from pathlib import Path
+import pandas as pd
+
+# 1. Get the directory where THIS script is located to ensure we can find the data files relative to it
+script_location = Path(__file__).resolve().parent
+
+# 2. Source data is in 'data/source/final_voter_file.csv' relative to the script location
+data_dir = script_location / 'data'
+
+file_path = data_dir / 'source' / 'final_voter_file.csv'
+output_path = data_dir / 'output' / 'clickable_links_final_voter_file.csv'
+
+# 1. Load the datasets
+voter_df = pd.read_csv(file_path, dtype={'LAST_NAME': str, 'SOS_VOTERID': str})
+
+# 2. add a new column with the Facebook search link
+import urllib.parse
+
+def generate_fb_search_link(row):
+    # Standardize data to strings for the URL
+    first = str(row['FIRST_NAME']).strip()
+    last = str(row['LAST_NAME']).strip()
+    city = str(row['RESIDENTIAL_CITY']).strip()
+    
+    # We use a broad search query: Name + City + State
+    query = f"{first} {last} {city} Ohio"
+    encoded_query = urllib.parse.quote(query)
+    return f"https://www.facebook.com/search/people/?q={encoded_query}"
+
+# 1. Create the column
+voter_df['FB_SEARCH_LINK'] = voter_df.apply(generate_fb_search_link, axis=1)
+
+# 8. Save to CSV
+voter_df_final = voter_df
+voter_df_final.to_csv(output_path, index=False)
+
+print(f"Done. Clickable Facebook search links added and saved to: {output_path}")

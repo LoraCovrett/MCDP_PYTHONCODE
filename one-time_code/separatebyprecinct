@@ -1,0 +1,39 @@
+import os
+from pathlib import Path
+import pandas as pd
+
+# 1. Get the directory where THIS script is located to ensure we can find the data files relative to it
+script_location = Path(__file__).resolve().parent
+
+# 2. Source data is in 'data/source/clickable_links_final_voter_file.csv' relative to the script location
+data_dir = script_location / 'data'
+
+file_path = data_dir / 'source' / 'clickable_links_final_voter_file.csv'
+
+# 1. Load the datasets
+voter_df = pd.read_csv(file_path, dtype={'PRECINCT_NAME': str, 'SOS_VOTERID': str})
+
+# 1. Final Filter: Ensure only current Democrats are included
+# (This is a safety check to make sure your list is pure 'D')
+morrow_dems = voter_df[voter_df['PARTY_AFFILIATION'] == 'Democrat'].copy()
+
+# 2. Create a subfolder for the precinct files
+output_folder = "Morrow_Precincts"
+if not os.path.exists(output_folder):
+    os.makedirs(output_folder)
+
+# 3. Group by Precinct and Save
+print(f"Starting precinct split for Morrow County...")
+
+# We group by Precinct Name and iterate through them
+for precinct_name, group in morrow_dems.groupby('PRECINCT_NAME'):
+    # Clean the precinct name for use as a filename (remove slashes or dots)
+    clean_name = str(precinct_name).replace("/", "-").replace(".", "").strip()
+    
+    # Define the file path (e.g., Morrow_Precincts/CARDINGTON_A.csv)
+    file_path = os.path.join(output_folder, f"{clean_name}.csv")
+    
+    # Save the precinct-specific list
+    group.to_csv(file_path, index=False)
+    
+print(f"Done! Created separate files in the '{output_folder}' folder.")
