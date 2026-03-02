@@ -2,6 +2,7 @@ import pandas as pd
 import logging
 from datetime import datetime
 from config import config
+import urllib.parse
 
 logger = logging.getLogger("voter_data_pipeline")
 
@@ -73,6 +74,7 @@ def add_additional_columns(df):
     df['PARTICIPATION'] = config.get('participation', '')
     df['DO_NOT_CALL'] = config.get('do_not_call', '')  
     df['DONATE'] = config.get('donate', '')  
+    df['FB_SEARCH_LINK'] = df.apply(generate_fb_search_link, axis=1)
    
     logger.info('Additional columns added to dataframe.')
     return df
@@ -92,6 +94,17 @@ def sort_data(df):
     logger.info('Data sorted by party affiliation and precinct.')
     return df
 
+
+def generate_fb_search_link(df):
+    # Standardize data to strings for the URL
+    first = str(df['FIRST_NAME']).strip()
+    last = str(df['LAST_NAME']).strip()
+    city = str(df['RESIDENTIAL_CITY']).strip()
+    
+    # We use a broad search query: Name + City + State
+    query = f"{first} {last} {city} Ohio"
+    encoded_query = urllib.parse.quote(query)
+    return f"https://www.facebook.com/search/people/?q={encoded_query}"
 
 def transform_data(df):
     """

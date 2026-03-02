@@ -2,14 +2,20 @@
 from pathlib import Path
 import pandas as pd
 
+# DEPRECATED: logic has been moved into byprecinct.py and is now invoked
+# automatically by process_voter_data.py at the end of each run.
+# This standalone script remains only for reference.
+
 # 1. Get the directory where THIS script is located to ensure we can find the data files relative to it
 script_location = Path(__file__).resolve().parent
 
 # 2. Source data is in 'data/source/final_voter_file.csv' relative to the script location
-data_dir = script_location / 'data'
+#move up one level to 'data' and then into 'master' for the master file and 'output' for the final output    
 
-file_path = data_dir / 'source' / 'final_voter_file.csv'
-output_path = data_dir / 'output' / 'clickable_links_final_voter_file.csv'
+data_dir = script_location.parent / 'data'
+
+file_path = data_dir / 'master' / 'master_voters.csv'
+output_path = data_dir / 'output' / 'master_clickable_links.csv'
 
 # 1. Load the datasets
 voter_df = pd.read_csv(file_path, dtype={'LAST_NAME': str, 'SOS_VOTERID': str})

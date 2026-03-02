@@ -10,6 +10,8 @@ from storage import save_parquet
 from validate import validate_required_columns, keep_required_columns, validate_and_convert_dtypes
 from transform import transform_data
 from export import export_excel, export_csv
+from master_update import update_master_file
+from byprecinct import separate_by_precinct
 import uuid
 
 # Generate unique run identifier for tracing records through pipeline
@@ -120,5 +122,30 @@ except Exception as e:
     logger.error(f'Error exporting CSV file: {e}')
     raise
 
+# Update master file with the new weekly data
+try:
+    master_file_path = config['master_file_path']
+    master_path, removed_path, changes_path = update_master_file(
+        master_file_path=master_file_path,
+        new_data_df=transformed_df,
+        output_dir=output_dir
+    )
+    logger.info(f'Master voter file updated: {master_path}')
+    if removed_path:
+        logger.info(f'Removed voters report: {removed_path}')
+    if changes_path:
+        logger.info(f'Party changes report: {changes_path}')
+
+    # After the master file has been updated, split it by precinct
+    try:
+        precinct_dir = config.get('precinct_dir', output_dir)
+        separate_by_precinct(master_file_path, precinct_dir)
+    except Exception as e:
+        logger.error(f'Error separating by precinct: {e}')
+        raise
+
+except Exception as e:
+    logger.error(f'Error updating master file: {e}')
+    raise
 
 logger.info('Weekly data processing completed successfully.')

@@ -18,10 +18,14 @@ import os
 # Configuration settings for the data processing pipeline
 DATA_DIR = "data/raw"
 PROCESSED_DIR = "data/processed"
+MASTER_FILE_PATH = "data/master/master_voters.csv"
+PRECINCT_OUTPUT_DIR = "data/processed/precincts"
 
 # Ensure data directories exist
 os.makedirs(DATA_DIR, exist_ok=True)        
 os.makedirs(PROCESSED_DIR, exist_ok=True)
+# Ensure precinct output directory exists as well
+os.makedirs(PRECINCT_OUTPUT_DIR, exist_ok=True)
 
 
 # Party affiliation mapping
@@ -37,7 +41,9 @@ party_affiliation_map = {
 
 config = {
     'data_dir': DATA_DIR,
-    'processed_dir': PROCESSED_DIR,                         
+    'processed_dir': PROCESSED_DIR,
+    'master_file_path': MASTER_FILE_PATH,
+    'precinct_dir': PRECINCT_OUTPUT_DIR,                         
     'party_affiliation_map': party_affiliation_map,
     'output_columns': [
         'SOS_VOTERID',
